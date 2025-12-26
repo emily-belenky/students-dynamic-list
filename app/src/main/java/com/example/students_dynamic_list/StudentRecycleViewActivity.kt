@@ -14,10 +14,14 @@ import com.example.students_dynamic_list.databinding.ActivityStudentRecycleViewB
 import com.example.students_dynamic_list.model.Model
 import com.example.students_dynamic_list.model.Student
 
-class StudentRecycleViewActivity : AppCompatActivity() {
+class StudentRecycleViewActivity : AppCompatActivity(), StudentAdapter.OnItemClickListener {
 
     var binding: ActivityStudentRecycleViewBinding? = null
     var adapter: StudentAdapter? = null
+
+    private val detailsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        adapter?.notifyDataSetChanged()
+    }
 
     private val addNewStudentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -32,7 +36,6 @@ class StudentRecycleViewActivity : AppCompatActivity() {
             val newStudent = Student(name, id, phone, address, isChecked)
 
             Model.shared.students.add(newStudent)
-
             adapter?.notifyItemInserted(Model.shared.students.size - 1)
         }
     }
@@ -54,16 +57,23 @@ class StudentRecycleViewActivity : AppCompatActivity() {
         binding?.studentsRecyclerView?.setHasFixedSize(true)
 
         adapter = StudentAdapter(Model.shared.students)
+        adapter?.listener = this
         binding?.studentsRecyclerView?.adapter = adapter
 
         binding?.studentRecycleViewAddButton?.setOnClickListener {
             val intent = Intent(this, AddNewStudentActivity::class.java)
             addNewStudentLauncher.launch(intent)
         }
-
     }
-    override fun onResume() {
-        super.onResume()
-        adapter?.notifyDataSetChanged()
+
+    override fun onItemClick(student: Student, position: Int) {
+        val intent = Intent(this, StudentDetailActivity::class.java)
+        intent.putExtra("STUDENT_NAME", student.name)
+        intent.putExtra("STUDENT_ID", student.id)
+        intent.putExtra("STUDENT_PHONE", student.phone)
+        intent.putExtra("STUDENT_ADDRESS", student.address)
+        intent.putExtra("STUDENT_IS_CHECKED", student.isChecked)
+        intent.putExtra("STUDENT_POSITION", position)
+        detailsLauncher.launch(intent)
     }
 }

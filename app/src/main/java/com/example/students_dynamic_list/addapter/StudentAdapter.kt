@@ -3,11 +3,19 @@ package com.example.students_dynamic_list.addapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.students_dynamic_list.addapter.StudentRowViewHolder
 import com.example.students_dynamic_list.databinding.StudentRowLayoutBinding
 import com.example.students_dynamic_list.model.Student
 
-class StudentAdapter (private val students: List<Student>) : RecyclerView.Adapter<StudentRowViewHolder>(){
+class StudentAdapter(
+    private val students: MutableList<Student>
+) : RecyclerView.Adapter<StudentRowViewHolder>() {
+
+    interface OnItemClickListener {
+        fun onItemClick(student: Student, position: Int)
+    }
+
+    var listener: OnItemClickListener? = null
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -20,12 +28,19 @@ class StudentAdapter (private val students: List<Student>) : RecyclerView.Adapte
         holder: StudentRowViewHolder,
         position: Int
     ) {
-        holder.bind(students[position])
+        val student = students[position]
+        holder.bind(student)
+
+        holder.itemView.setOnClickListener {
+            listener?.onItemClick(student, position)
+        }
+
+        holder.binding.checkBox.setOnClickListener {
+            student.isChecked = holder.binding.checkBox.isChecked
+        }
     }
 
     override fun getItemCount(): Int {
         return students.size
-
     }
-
 }

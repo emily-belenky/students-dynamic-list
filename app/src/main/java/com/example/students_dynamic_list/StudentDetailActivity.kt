@@ -10,8 +10,10 @@ import com.example.students_dynamic_list.model.Model
 
 class StudentDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStudentDetailBinding
+    private var wasDataChanged = false
 
     private val editLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        wasDataChanged = true // Mark that a change might have happened
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
             val position = data?.getIntExtra("STUDENT_POSITION", -1) ?: -1
@@ -36,7 +38,7 @@ class StudentDetailActivity : AppCompatActivity() {
             binding.activityStudentDetailsId.text = newId
             binding.activityStudentDetailsPhone.text = newPhone
             binding.activityStudentDetailsAddress.text = newAddress
-            binding.activityAddNewStudentIsCheckedBox.isChecked = newIsChecked
+            binding.activityStudentDetailsIsCheckedBox.isChecked = newIsChecked
         }
         else if (result.resultCode == Activity.RESULT_FIRST_USER) {
             val data: Intent? = result.data
@@ -71,7 +73,7 @@ class StudentDetailActivity : AppCompatActivity() {
         binding.activityStudentDetailsId.text = id
         binding.activityStudentDetailsPhone.text = phone
         binding.activityStudentDetailsAddress.text = address
-        binding.activityAddNewStudentIsCheckedBox.isChecked = isChecked
+        binding.activityStudentDetailsIsCheckedBox.isChecked = isChecked
 
         // 3. Back button logic: just close this screen
         binding.activityStudentDetailsBackBtn.setOnClickListener {
@@ -82,16 +84,23 @@ class StudentDetailActivity : AppCompatActivity() {
         binding.activityStudentDetailsEditBtn.setOnClickListener {
             val intent = Intent(this, EditStudentActivity::class.java).apply {
                 // Pass the current data to the edit screen
-                putExtra("STUDENT_NAME", name)
-                putExtra("STUDENT_ID", id)
-                putExtra("STUDENT_PHONE", phone)
-                putExtra("STUDENT_ADDRESS", address)
-                putExtra("STUDENT_IS_CHECKED", isChecked)
+                putExtra("STUDENT_NAME", binding.activityStudentDetailsName.text.toString())
+                putExtra("STUDENT_ID", binding.activityStudentDetailsId.text.toString())
+                putExtra("STUDENT_PHONE", binding.activityStudentDetailsPhone.text.toString())
+                putExtra("STUDENT_ADDRESS", binding.activityStudentDetailsAddress.text.toString())
+                putExtra("STUDENT_IS_CHECKED", binding.activityStudentDetailsIsCheckedBox.isChecked)
                 // Pass the position so the EditActivity knows which student it is
                 putExtra("STUDENT_POSITION", position)
             }
             // Use the launcher to start the activity
             editLauncher.launch(intent)
         }
+    }
+
+    override fun finish() {
+        if (wasDataChanged) {
+            setResult(Activity.RESULT_OK)
+        }
+        super.finish()
     }
 }
